@@ -15,3 +15,10 @@
  
 .my_meta_control h4
 { color:#999; font-size:1em; margin:15px 6px; text-transform:uppercase; }
+
+.wpa_group {
+	border-radius: 5px;
+	padding: 10px;
+	margin: 10px;
+	border: 1px solid #cccccc;
+}

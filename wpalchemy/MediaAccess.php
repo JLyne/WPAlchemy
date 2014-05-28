@@ -5,13 +5,12 @@
  * @copyright	Copyright (c) 2011, Dimas Begunoff, http://farinspace.com/
  * @license  	http://en.wikipedia.org/wiki/MIT_License The MIT License
  * @package  	WPAlchemy
- * @version  	0.2.1
+ * @version  	2.2
  * @link     	http://github.com/farinspace/wpalchemy/
  * @link     	http://farinspace.com/
  */
 
- class WPAlchemy_MediaAccess
-{
+class WPAlchemy_MediaAccess {
 	/**
 	 * User defined identifier for the css class name of the HTML button element,
 	 * used when pairing the field and button elements
@@ -70,15 +69,12 @@
 	 * @access	public
 	 * @param	array $a
 	 */
-	public function __construct(array $a = array())
-	{
-		foreach ($a as $n => $v)
-		{
+	public function __construct(array $a = array()) {
+		foreach ($a as $n => $v) {
 			$this->$n = $v;
 		}
 
-		if ( ! defined('WPALCHEMY_SEND_TO_EDITOR_ENABLED'))
-		{
+		if ( ! defined('WPALCHEMY_SEND_TO_EDITOR_ENABLED')) {
 			// Ensure the media upload scripts and styles are added
 			add_action( "admin_print_scripts", array( $this, "enqueueAdminScripts") );
 			// Ensure send to editor button is added.
@@ -88,8 +84,6 @@
 
 			define('WPALCHEMY_SEND_TO_EDITOR_ENABLED', true);
 		}
-		
-		
 	}
 
 	/**
@@ -101,7 +95,7 @@
 	 * @param array $args Arguments for media upload
 	 * @return $args
 	 */
-	function getMediaItemArgs( $args ) {
+	public function getMediaItemArgs( $args ) {
 		$args['send'] = true;
 		return $args;
 	}
@@ -113,8 +107,7 @@
 	 * @since 0.2.1
 	 * @access public
 	 */
-	public function enqueueAdminScripts() 
-	{
+	public function enqueueAdminScripts() {
 		wp_enqueue_style('thickbox');
 		wp_enqueue_script('media-upload');
 		wp_enqueue_script('thickbox');
@@ -127,8 +120,7 @@
 	 * @access	public
 	 * @return	string
 	 */
-	private function getName()
-	{
+	private function getName() {
 		return substr(md5(microtime() . rand()), rand(0,25), 6);
 	}
 
@@ -142,8 +134,7 @@
 	 * @return	object $this
 	 * @see		setGroupName()
 	 */
-	public function setInsertButtonLabel($label = 'Insert')
-	{
+	public function setInsertButtonLabel($label = 'Insert') {
 		$this->insert_button_label = $label;
 
 		return $this;
@@ -159,12 +150,22 @@
 	 * @return	object $this
 	 * @see		setInsertButtonLabel()
 	 */
-	public function setGroupName($name)
-	{
+	public function setGroupName($name) {
 		$this->groupname = $name;
 
 		return $this;
 	}
+
+	/**
+	 * Unused function for backwards compatibility
+	 *
+	 * @deprecated
+	 * @since	0.1
+	 * @access	public
+	 */
+	public function setTab($name = 'library') {
+	}
+
 
 	/**
 	 * Used to insert a form field of type "text", this should be paired with a
@@ -176,21 +177,19 @@
 	 * @return	HTML
 	 * @see		getButton()
 	 */
-	public function getField(array $attr)
-	{
-		$groupname = isset($attr['groupname']) ? $attr['groupname'] : $this->groupname ;
+	public function getField(array $attr) {
+		$groupname = isset($attr['groupname']) ? $attr['groupname'] : $this->groupname;
 		
-		$attr_default = array
-		(
+		$attr_default = array(
 			'type' => 'text',
-			'class' => $this->field_class_name . '-' . $groupname,
-			'data-button' => '.mediabutton.' . $this->field_class_name . '-' . $groupname
+			'class' => $this->getFieldClass($groupname),
+			'data-group' => $groupname,
+			'data-button' => '.' . $this->button_class_name . '.' . $this->field_class_name . '-' . $groupname
 		);
 
 		###
 
-		if (isset($attr['class']))
-		{
+		if (isset($attr['class'])) {
 			$attr['class'] = $attr_default['class'] . ' ' . trim($attr['class']);
 		}
 
@@ -200,8 +199,7 @@
 
 		$elem_attr = array();
 
-		foreach ($attr as $n => $v)
-		{
+		foreach ($attr as $n => $v) {
 			array_push($elem_attr, $n . '="' . $v . '"');
 		}
 
@@ -221,11 +219,10 @@
 	 * @return	string css class(es)
 	 * @see		getButtonLink(), getButton()
 	 */
-	public function getButtonClass($groupname = null)
-	{
+	public function getButtonClass($groupname = null) {
 		$groupname = isset($groupname) ? $groupname : $this->groupname ;
 		
-		return $this->button_class_name . '-' . $groupname . ' insert-media';
+		return $this->button_class_name . ' ' . $this->button_class_name . '-' . $groupname . ' insert-media button';
 	}
 
 	/**
@@ -239,11 +236,10 @@
 	 * @return	string css class(es)
 	 * @see		getButtonClass(), getField()
 	 */
-	public function getFieldClass($groupname = null)
-	{
+	public function getFieldClass($groupname = null) {
 		$groupname = isset($groupname) ? $groupname : $this->groupname ;
 
-		return $this->field_class_name . '-' . $groupname;
+		return $this->field_class_name . ' ' .  $this->field_class_name . '-' . $groupname;
 	}
 
 	/**
@@ -255,29 +251,26 @@
 	 * @return	HTML
 	 * @see		getField(), getButtonClass(), getButtonLink()
 	 */
-	public function getButton(array $attr = array())
-	{
+	public function getButton(array $attr = array()) {
 		$groupname = isset($attr['groupname']) ? $attr['groupname'] : $this->groupname ;
 
 		$tab = isset($attr['tab']) ? $attr['tab'] : $this->tab ;
 		
-		$attr_default = array
-		(
+		$attr_default = array(
+			'type' => 'button',
 			'label' => 'Add Media',
-			'href' => '#',
-			'class' => $this->getButtonClass($groupname) . ' button',
-			'data-input' => '.mediainput.' . $this->field_class_name . '-' . $groupname
+			'class' => $this->getButtonClass($groupname),
+			'data-group' => $groupname,
+			'data-input' => '.mediainput.' . $this->field_class_name . '-' . $groupname,
 		);
 
-		if (isset($this->insert_button_label))
-		{
+		if (isset($this->insert_button_label)) {
 			$attr_default['data-button-label'] = $this->insert_button_label;
 		}
 
 		###
 
-		if (isset($attr['class']))
-		{
+		if (isset($attr['class'])) {
 			$attr['class'] = $attr_default['class'] . ' ' . trim($attr['class']);
 		}
 
@@ -291,14 +284,13 @@
 
 		$elem_attr = array();
 
-		foreach ($attr as $n => $v)
-		{
+		foreach ($attr as $n => $v) {
 			array_push($elem_attr, $n . '="' . $v . '"');
 		}
 
 		###
 
-		return '<a ' . implode(' ', $elem_attr) . '>' . $label . '</a>';
+		return '<button ' . implode(' ', $elem_attr) . '>' . $label . '</button>';
 	}
 
 	/**
@@ -309,19 +301,17 @@
 	 * @access	public
 	 * @return	HTML/Javascript
 	 */
-	public function init()
-	{
+	public function init() {
 		$uri = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : NULL ;
 
 		$file = basename(parse_url($uri, PHP_URL_PATH));
 
-		if ($uri AND in_array($file, array('post.php', 'post-new.php')))
-		{
+		if ($uri AND in_array($file, array('post.php', 'post-new.php'))) {
 			// include javascript for special functionality
 			?><script type="text/javascript">
 			/* <![CDATA[ */
 				jQuery(function($) {
-					Wpalchemy = {
+					Wpalchemy.MediaAccess = {
 						sendToEditorDefault: window.send_to_editor,
 						mediaField: null,
 						mediaGallery: '#__wp-uploader-id-2',
@@ -331,10 +321,10 @@
 							if (typeof window.send_to_editor === 'function') {
 								// Bind to the document click event,
 								// Delegate the event to MediaAccess' button class.
-								$(document).on('click', '[class*=<?= $this->button_class_name; ?>]', function(e) {
+								$('.postbox').on('click', '.<?=$this->button_class_name;?>', function(e) {
 									e.preventDefault();
 									that.getmediaField($(this));
-									return false;
+									//return false;
 								});
 							}
 						},
@@ -404,17 +394,20 @@
 						 * Also replace send_to_editor with getSelectedImage to handle the image when it is selected
 						 */
 						getmediaField: function(element) {
-							var name = element.attr('class').match(/<?php echo $this->button_class_name; ?>-([\d\w_-]*)/i),
+							var name = element.data('group'),
 							index;
 
-							name = (name && name[1]) ? name[1] : '';
-							index = element.index('.postbox .<?= $this->button_class_name; ?>-' + name);
+							if(!name) {
+								return false;
+							}
 
-							this.mediaField = $('.postbox .<?= $this->field_class_name; ?>-' + name).eq(index);
+							index = element.index('.postbox .<?=$this->button_class_name;?>');
+
+							this.mediaField = $('.postbox .<?=$this->field_class_name;?>').eq(index);
 							this.setupGallery();
 						}
 					}
-					Wpalchemy.init();		
+					Wpalchemy.MediaAccess.init();		
 				});
 			/* ]]> */
 			</script><?php
