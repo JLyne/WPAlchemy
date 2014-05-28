@@ -1345,15 +1345,25 @@ class WPAlchemy_MetaBox {
 	 * @access	private
 	 */
 	public function _global_head() {
+
 		// must be creating or editing a post or page
 		if(!WPAlchemy_MetaBox::_is_post() && !WPAlchemy_MetaBox::_is_page()) return;
 
 		// todo: you're assuming people will want to use this exact functionality
 		// consider giving a developer access to change this via hooks/callbacks
 
+ 		// wp_enqueue_script( 'domJS', get_template_directory_uri() . '/wpalchemy/htmlDOM.js', array(''), null,false); 
 		// include javascript for special functionality
 		?>
+
+		<script type="text/javascript">
+			(function(){function l(e){var t={},n=e.split(",");for(var r=0;r<n.length;r++)t[n[r]]=true;return t}var e=/^<([-A-Za-z0-9_]+)((?:\s+\w+(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,t=/^<\/([-A-Za-z0-9_]+)[^>]*>/,n=/([-A-Za-z0-9_]+)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;var r=l("area,base,basefont,br,col,frame,hr,img,input,isindex,link,meta,param,embed");var i=l("address,applet,blockquote,button,center,dd,del,dir,div,dl,dt,fieldset,form,frameset,hr,iframe,ins,isindex,li,map,menu,noframes,noscript,object,ol,p,pre,script,table,tbody,td,tfoot,th,thead,tr,ul");var s=l("a,abbr,acronym,applet,b,basefont,bdo,big,br,button,cite,code,del,dfn,em,font,i,iframe,img,input,ins,kbd,label,map,object,q,s,samp,script,select,small,span,strike,strong,sub,sup,textarea,tt,u,var");var o=l("colgroup,dd,dt,li,options,p,td,tfoot,th,thead,tr");var u=l("checked,compact,declare,defer,disabled,ismap,multiple,nohref,noresize,noshade,nowrap,readonly,selected");var a=l("script,style");var f=this.HTMLParser=function(f,l){function g(e,t,a,f){t=t.toLowerCase();if(i[t]){while(d.last()&&s[d.last()]){y("",d.last())}}if(o[t]&&d.last()==t){y("",t)}f=r[t]||!!f;if(!f)d.push(t);if(l.start){var c=[];a.replace(n,function(e,t){var n=arguments[2]?arguments[2]:arguments[3]?arguments[3]:arguments[4]?arguments[4]:u[t]?t:"";c.push({name:t,value:n,escaped:n.replace(/(^|[^\\])"/g,'$1\\"')})});if(l.start)l.start(t,c,f)}}function y(e,t){if(!t)var n=0;else for(var n=d.length-1;n>=0;n--)if(d[n]==t)break;if(n>=0){for(var r=d.length-1;r>=n;r--)if(l.end)l.end(d[r]);d.length=n}}var c,h,p,d=[],v=f;d.last=function(){return this[this.length-1]};while(f){h=true;if(!d.last()||!a[d.last()]){if(f.indexOf("<!--")==0){c=f.indexOf("-->");if(c>=0){if(l.comment)l.comment(f.substring(4,c));f=f.substring(c+3);h=false}}else if(f.indexOf("</")==0){p=f.match(t);if(p){f=f.substring(p[0].length);p[0].replace(t,y);h=false}}else if(f.indexOf("<")==0){p=f.match(e);if(p){f=f.substring(p[0].length);p[0].replace(e,g);h=false}}if(h){c=f.indexOf("<");var m=c<0?f:f.substring(0,c);f=c<0?"":f.substring(c);if(l.chars)l.chars(m)}}else{f=f.replace(new RegExp("(.*)</"+d.last()+"[^>]*>"),function(e,t){t=t.replace(/<!--(.*?)-->/g,"$1").replace(/<!\[CDATA\[(.*?)]]>/g,"$1");if(l.chars)l.chars(t);return""});y("",d.last())}if(f==v)throw"Parse Error: "+f;v=f}y()};this.HTMLtoXML=function(e){var t="";f(e,{start:function(e,n,r){t+="<"+e;for(var i=0;i<n.length;i++)t+=" "+n[i].name+'="'+n[i].escaped+'"';t+=(r?"/":"")+">"},end:function(e){t+="</"+e+">"},chars:function(e){t+=e},comment:function(e){t+="<!--"+e+"-->"}});return t};this.HTMLtoDOM=function(e,t){var n=l("html,head,body,title");var r={link:"head",base:"head"};if(!t){if(typeof DOMDocument!="undefined")t=new DOMDocument;else if(typeof document!="undefined"&&document.implementation&&document.implementation.createDocument)t=document.implementation.createDocument("","",null);else if(typeof ActiveX!="undefined")t=new ActiveXObject("Msxml.DOMDocument")}else t=t.ownerDocument||t.getOwnerDocument&&t.getOwnerDocument()||t;var i=[],s=t.documentElement||t.getDocumentElement&&t.getDocumentElement();if(!s&&t.createElement)(function(){var e=t.createElement("html");var n=t.createElement("head");n.appendChild(t.createElement("title"));e.appendChild(n);e.appendChild(t.createElement("body"));t.appendChild(e)})();if(t.getElementsByTagName)for(var o in n)n[o]=t.getElementsByTagName(o)[0];var u=n.body;f(e,{start:function(e,s,o){if(n[e]){u=n[e];if(!o){i.push(u)}return}var a=t.createElement(e);for(var f in s)a.setAttribute(s[f].name,s[f].value);if(r[e]&&typeof n[r[e]]!="boolean")n[r[e]].appendChild(a);else if(u&&u.appendChild)u.appendChild(a);if(!o){i.push(a);u=a}},end:function(e){i.length-=1;u=i[i.length-1]},chars:function(e){u.appendChild(t.createTextNode(e))},comment:function(e){}});return t}})()
+		</script>
+
 		<style type="text/css"> 
+			.hide-fullscreen .mce-wp-fullscreen{
+				display: none;
+			}
 			.wpa_group.tocopy {
 				display: none;
 			}
@@ -1362,6 +1372,34 @@ class WPAlchemy_MetaBox {
 		/* <![CDATA[ */
 		jQuery(function($) {
 			Wpalchemy = window.Wpalchemy || {
+
+				cleanMarkup:function(input){
+					var results = "";
+					HTMLParser(input, {
+						start: function( tag, attrs, unary ) {
+							results += "<" + tag;
+
+							for ( var i = 0; i < attrs.length; i++ )
+								results += " " + attrs[i].name + '="' + attrs[i].escaped + '"';
+
+							results += (unary ? "/" : "") + ">";
+						},
+
+						end: function( tag ) {
+							results += "</" + tag + ">";
+						},
+
+						chars: function( text ) {
+							results += text;
+						},
+
+						comment: function( text ) {
+							results += "<!--" + text + "-->";
+						}
+					});
+
+					return results;
+				},
 
 				deleteItem: function(elem) {
 					var metabox = elem.parents('.postbox'),
@@ -1418,6 +1456,7 @@ class WPAlchemy_MetaBox {
 					count = $('#' + target + ' > .wpa_group').length,
 					group = $('#' + target + ' > .tocopy'),
 					clone = group.clone(false).removeClass('tocopy last');
+					console.log($(clone));
 					
 					this.updateAttributes(clone, field, count);
 
@@ -1444,7 +1483,6 @@ class WPAlchemy_MetaBox {
 					elem.find('*').each(function(i, e) {
 						for (var j = 0; j < properties.length; j++) {
 							var value = $(e).attr(properties[j]);
-
 							if (value) {
 								var name_replace = new RegExp('\\[' + field + ']\\[\\d+]'),
 								other_replace = new RegExp('\\-' + field + '\\-\\d+\\-');
@@ -1454,26 +1492,55 @@ class WPAlchemy_MetaBox {
 								$(e).attr(properties[j], value);
 							}
 						}
+						if($(e).hasClass('wp-editor-area')){
+							$(e).attr('id',Math.floor(Math.random() * new Date().getTime() * Math.random()));
+						}
 					});
 					elem.data('index', replace);
 				},
 
 				initTinyMCE: function() {
-		            $('#<?=$this->id?>_metabox textarea.wp-editor-area').each(function(e) {
-		            	if(!$(this).closest('.tocopy').length && $(this).data('uninitialised')) {
-		            		console.log('initialising tinyMCE on ' + $(this).attr('id'));
-		                	tinyMCE.execCommand('mceFocus', false, $(this).attr('id'));
-		                	tinyMCE.execCommand('mceRemoveControl', false, $(this).attr('id'));
-		                	tinyMCE.execCommand('mceAddControl', false, $(this).attr('id'));
-		                	tinyMCE.triggerSave();
-		                	$(this).data('tinymce-loaded', true);
-		            	}
-		            });
+					//-metaboxes that were not in a loop were being ignored 
+		            $('.wpa_group:not(.tocopy) textarea.wp-editor-area, .single-metabox textarea.wp-editor-area').each(function(e) {
+		            	if($(this).data('uninitialised')){
+							console.log('initialising tinyMCE on ' + $(this).attr('id'));
+							tinyMCE.settings = tinyMCEPreInit.mceInit.content;
+							tinyMCE.execCommand('mceFocus', false, $(this).attr('id'));
+							tinyMCE.execCommand('mceRemoveEditor', false, $(this).attr('id'));
+							tinyMCE.execCommand('mceAddEditor', false, $(this).attr('id'));
+							//- Declare the quicktags
+							//- Adding new quicktag toolbar
+							// QTags({ id : $(this).attr('id')});
+							tinyMCE.triggerSave();
+							$(this).data('uninitialised',false);
+						}
+	   	            });
+				},
+
+				switchto:function(elem){
+					var $editor = jQuery(elem).parent().parent().parent().find(".wp-editor-area");
+					console.log($editor.attr('id'));
+					var $wrap = $(elem).parent().parent().parent();
+					if($wrap.hasClass('html-active')){
+						tinyMCE.execCommand('mceAddEditor', false, $editor.attr('id'));
+						$wrap.removeClass('html-active');
+						$wrap.addClass('tmce-active');
+					} else {
+						$wrap.addClass('html-active');
+						$wrap.removeClass('tmce-active');
+						var cleanContent = switchEditors._wp_Autop(tinyMCE.get($editor.attr('id')).getContent());
+						console.log(cleanContent);
+						tinyMCE.execCommand('mceRemoveEditor', false, $editor.attr('id'));
+						$editor.val(cleanContent);
+
+					}
 				}
+
 			};
 
 			Wpalchemy.<?=$this->id?> = {
 				init: function() {
+					Wpalchemy.initTinyMCE();
 					$('#<?=$this->id?>_metabox').on('click', '.docopy', function(e) {
 						e.preventDefault();
 						Wpalchemy.copyItem($(this));
@@ -1509,6 +1576,7 @@ class WPAlchemy_MetaBox {
 				}
 			};
 			Wpalchemy.<?=$this->id?>.init();
+
 		});
 		/* ]]> */
 		</script>
@@ -2033,17 +2101,41 @@ class WPAlchemy_MetaBox {
 	public function the_wp_editor() {
 
 	}
-
-	public function get_the_wp_editor($content = '', $name = NULL) {
+	//- For single wp-editors add an extra boolean of true - Need write to check to see if we are in a loop
+	public function get_the_wp_editor($content = '', $name, $is_single = false, $height = 300) {
 		$content = html_entity_decode($content);
+		$id = md5(uniqid(rand()));
+			// $clean_name = str_replace('-', '_', $name);
+			// $clean_name = str_replace('[', '', $clean_name);
+			// $clean_name = str_replace(']', '', $clean_name);
 
-		if(count($this->loops) && end($this->loops)->type === 'multi' && $this->is_last()) {
-			return '<textarea class="wp-editor-area" name="' . $this->get_the_name($name) . '" id="' . md5(uniqid(rand())) . '" data-uninitialised="true"></textarea>';
-		}
+			//- Buttons
+			$clean_name = $id;
+			$buttons = '<a id="' . $clean_name . '-html" class="wp-switch-editor switch-html" onclick="Wpalchemy.switchto(this);">Text</a>';
+			$buttons .= '<a id="' . $clean_name . '-tmce" class="wp-switch-editor switch-tmce" onclick="Wpalchemy.switchto(this);">Visual</a>';
 
-		return wp_editor($content, md5(uniqid(rand())), array(
-			'textarea_name' => $this->get_the_name($name)
-		));
+			ob_start(); 
+			?>
+				<?= ($is_single) ? '<div class="single-metabox">' : '' ; ?>
+				<div id="wp-<?=$clean_name;?>-wrap" class="wp-core-ui  wp-editor-wrap tmce-active hide-fullscreen">
+
+					<div id="wp-<?=$clean_name;?>-editor-tools" class="wp-editor-tools hide-if-no-js">
+						<div id="wp-<?= $clean_name;?>-media-buttons" class="wp-media-buttons">
+							<? do_action('media_buttons', $clean_name); ?>
+						</div>
+						<div class="wp-editor-tabs"><?= $buttons; ?></div>
+					</div>
+
+					<div id="wp-<?=$clean_name;?>-editor-container" class="wp-editor-container">					
+						<textarea class="wp-editor-area" name="<?= $name; ?>" id="<?= $clean_name; ?>" data-uninitialised="true"><?= $content ?></textarea>
+					</div>
+				</div>
+				<?= ($is_single) ? '</div>' : '' ; ?>
+			<?
+			$r_val = ob_get_contents();
+			ob_end_clean();
+			return $r_val;
+		
 	}
 
 	/**
