@@ -1360,45 +1360,37 @@ class WPAlchemy_MetaBox
 		/* <![CDATA[ */
 		jQuery(function($)
 		{
-			$(document).click(function(e)
-			{		
-				var elem = $(e.target);
+			$('[class*=dodelete]').click(function(e) {		
+				var elem = $(e.target),
+				p = elem.parents('.postbox'), /*wp*/
+				the_name = elem.attr('class').match(/dodelete-([a-zA-Z0-9_-]*)/i);
+				the_name = (the_name && the_name[1]) ? the_name[1] : null ;
 
-				if (elem.attr('class') && elem.filter('[class*=dodelete]').length)
+				e.preventDefault();
+
+				if (confirm('This action can not be undone, are you sure?'))
 				{
-					e.preventDefault();
-
-					var p = elem.parents('.postbox'); /*wp*/
-
-					var the_name = elem.attr('class').match(/dodelete-([a-zA-Z0-9_-]*)/i);
-
-					the_name = (the_name && the_name[1]) ? the_name[1] : null ;
-
-					/* todo: expose and allow editing of this message */
-					if (confirm('This action can not be undone, are you sure?'))
+					if (the_name)
 					{
-						if (the_name)
-						{
-							$('.wpa_group-'+ the_name, p).not('.tocopy').remove();
-						}
-						else
-						{
-							elem.parents('.wpa_group').remove();
-						}
-						
-						var the_group = elem.parents('.wpa_group');
-						
-						if(the_group && the_group.attr('class'))
-						{
-							the_name = the_group.attr('class').match(/wpa_group-([a-zA-Z0-9_-]*)/i);
-
-							the_name = (the_name && the_name[1]) ? the_name[1] : null ;
-
-							checkLoopLimit(the_name);
-						}
-
-						$.wpalchemy.trigger('wpa_delete');
+						$('.wpa_group-'+ the_name, p).not('.tocopy').remove();
 					}
+					else
+					{
+						elem.parents('.wpa_group').remove();
+					}
+					
+					var the_group = elem.parents('.wpa_group');
+					
+					if(the_group && the_group.attr('class'))
+					{
+						the_name = the_group.attr('class').match(/wpa_group-([a-zA-Z0-9_-]*)/i);
+
+						the_name = (the_name && the_name[1]) ? the_name[1] : null ;
+
+						checkLoopLimit(the_name);
+					}
+
+					$.wpalchemy.trigger('wpa_delete');
 				}
 			});
 
@@ -1428,22 +1420,13 @@ class WPAlchemy_MetaBox
 
 							if (the_match)
 							{
+								console.log(the_match);
 								the_prop = the_prop.replace(the_match[0],'['+ (+the_match[1]+1) +']');
 
 								$(elem).attr(the_props[j], the_prop);
 							}
 
 							the_match = null;
-
-							// todo: this may prove to be too broad of a search
-							the_match = the_prop.match(/n(\d+)/i);
-
-							if (the_match)
-							{
-								the_prop = the_prop.replace(the_match[0], 'n' + (+the_match[1]+1));
-
-								$(elem).attr(the_props[j], the_prop);
-							}
 						}
 					}
 				});

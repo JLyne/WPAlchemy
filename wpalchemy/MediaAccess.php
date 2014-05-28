@@ -30,7 +30,7 @@
 	 * @access	public
 	 * @var		string required
 	 */
-	public $field_class_name = 'mediafield';
+	public $field_class_name = 'mediainput';
 
 	/**
 	 * User defined label for the insert button in the media upload box, this
@@ -79,10 +79,45 @@
 
 		if ( ! defined('WPALCHEMY_SEND_TO_EDITOR_ENABLED'))
 		{
+			// Ensure the media upload scripts and styles are added
+			add_action( "admin_print_scripts", array( $this, "enqueueAdminScripts") );
+			// Ensure send to editor button is added.
+			add_filter( "get_media_item_args", array( $this, "getMediaItemArgs" ) );
+			// Initialize the footer script
 			add_action('admin_footer', array($this, 'init'));
 
 			define('WPALCHEMY_SEND_TO_EDITOR_ENABLED', true);
 		}
+		
+		
+	}
+
+	/**
+	 * Used to ensure the Insert button is added to media upload panel
+	 * in case the editor isn't present on the screen.
+	 *
+	 * @since 0.2.1
+	 * @access public
+	 * @param array $args Arguments for media upload
+	 * @return $args
+	 */
+	function getMediaItemArgs( $args ) {
+		$args['send'] = true;
+		return $args;
+	}
+
+	/**
+	 * Used to enqueue media upload scripts
+	 * in case the editor isn't present on the screen.
+	 *
+	 * @since 0.2.1
+	 * @access public
+	 */
+	public function enqueueAdminScripts() 
+	{
+		wp_enqueue_style('thickbox');
+		wp_enqueue_script('media-upload');
+		wp_enqueue_script('thickbox');
 	}
 
 	/**
@@ -112,13 +147,6 @@
 		$this->insert_button_label = $label;
 
 		return $this;
-	}
-
-	public function setTab($name)
-	{
-		$this->tab = $name;
-
-		$this;
 	}
 
 	/**
@@ -156,6 +184,7 @@
 		(
 			'type' => 'text',
 			'class' => $this->field_class_name . '-' . $groupname,
+			'data-button' => '.mediabutton.' . $this->field_class_name . '-' . $groupname
 		);
 
 		###
@@ -182,29 +211,6 @@
 	}
 
 	/**
-	 * Used to get the link used for the button element. If creating custom
-	 * buttons, this method should be used to get the link needed for proper
-	 * functionality.
-	 *
-	 * @since	0.1
-	 * @access	public
-	 * @param	string $tab name that the media upload box will initially load
-	 * @return	string link
-	 * @see		getButtonClass(), getButton()
-	 */
-	public function getButtonLink($tab = null)
-	{
-		// this is set even for new posts/pages
-		global $post_ID; //wp
-
-		$tab = ! empty($tab) ? $tab : $this->tab ;
-
-		$tab = ! empty($tab) ? $tab : 'library' ;
-		
-		return 'media-upload.php?post_id=' . $post_ID . '&metabox=1&tab=' . $tab . '&TB_iframe=1';
-	}
-
-	/**
 	 * Used to get the CSS class name(s) used for the button element. If
 	 * creating custom buttons, this method should be used to get the css class
 	 * names needed for proper functionality.
@@ -219,7 +225,7 @@
 	{
 		$groupname = isset($groupname) ? $groupname : $this->groupname ;
 		
-		return $this->button_class_name . '-' . $groupname . ' thickbox';
+		return $this->button_class_name . '-' . $groupname . ' insert-media';
 	}
 
 	/**
@@ -254,16 +260,18 @@
 		$groupname = isset($attr['groupname']) ? $attr['groupname'] : $this->groupname ;
 
 		$tab = isset($attr['tab']) ? $attr['tab'] : $this->tab ;
+		
 		$attr_default = array
 		(
 			'label' => 'Add Media',
-			'href' => $this->getButtonLink($tab),
+			'href' => '#',
 			'class' => $this->getButtonClass($groupname) . ' button',
+			'data-input' => '.mediainput.' . $this->field_class_name . '-' . $groupname
 		);
 
 		if (isset($this->insert_button_label))
 		{
-			$attr_default['class'] .= " {label:'" . $this->insert_button_label . "'}";
+			$attr_default['data-button-label'] = $this->insert_button_label;
 		}
 
 		###
@@ -312,98 +320,102 @@
 			// include javascript for special functionality
 			?><script type="text/javascript">
 			/* <![CDATA[ */
+				jQuery(function($) {
+					Wpalchemy = {
+						sendToEditorDefault: window.send_to_editor,
+						mediaField: null,
+						mediaGallery: '#__wp-uploader-id-2',
 
-				var interval = null;
-
-				jQuery(function($)
-				{
-					if (typeof send_to_editor === 'function')
-					{
-						var wpalchemy_insert_button_label = '';
-
-						var wpalchemy_mediafield = null;
-
-						var wpalchemy_send_to_editor_default = send_to_editor;
-
-						send_to_editor = function(html)
-						{
-							clearInterval(interval);
-
-							if (wpalchemy_mediafield)
-							{
-								var src = html.match(/src=['|"](.*?)['|"] alt=/i);
-								src = (src && src[1]) ? src[1] : '' ;
-
-								var href = html.match(/href=['|"](.*?)['|"]/i);
-								href = (href && href[1]) ? href[1] : '' ;
-
-								var url = src ? src : href ;
-
-								wpalchemy_mediafield.val(url);
-
-								// reset insert button label
-								setInsertButtonLabel(wpalchemy_insert_button_label);
-
-								wpalchemy_mediafield = null;
+						init: function() {
+							var that = this;
+							if (typeof window.send_to_editor === 'function') {
+								// Bind to the document click event,
+								// Delegate the event to MediaAccess' button class.
+								$(document).on('click', '[class*=<?= $this->button_class_name; ?>]', function(e) {
+									e.preventDefault();
+									that.getmediaField($(this));
+									return false;
+								});
 							}
-							else
-							{
-								wpalchemy_send_to_editor_default(html);
+						},
+
+						/*
+						* Get the src and id of the selected image
+						* Set the value of the field to the src (or the id if data-id is set)
+						*/
+						getSelectedImage: function(html) {
+							var src = html.match(/src=['|"](.*?)['|"] alt=/i),
+							href = html.match(/href=['|"](.*?)['|"]/i),
+							url,
+							id = html.match(/wp-image-(\d+)/);
+
+							src = ( src && src[ 1 ] ) ? src[ 1 ] : '';
+							href = ( href && href[ 1 ] ) ? href[ 1 ] : '';
+							url = src || href;
+							id = (id && id[1]) ? id[1] : '';
+
+							if(this.mediaField.data('id')) {
+								this.mediaField.val(id);
+								this.mediaField.attr('data-url', url);
+							} else {
+								this.mediaField.val(url);
 							}
+							
+							this.mediaField.trigger('change');
+							this.mediaField = null;
+							this.showMediaOptions();
 
-							tb_remove();
+							window.send_to_editor = this.sendToEditorDefault;
+						},
+
+						/**
+						 * Returns the triggered elements label
+						 */
+						getTriggerLabel: function() {
+							var label = this.mediaField.data("button-label"); // Get the data button-label property.
+							return (label) ? label : "Insert"; // If the label is set, return the label, otherwise return "Insert"
+						},
+
+						setInsertButtonLabel: function(label) {
+							$(this.mediaGallery).find('.media-button-insert').html(label);
+						},
+
+						hideMediaOptions: function() {
+							$(this.mediaGallery).find('.media-menu-item').hide().first().show();
+						},
+
+						showMediaOptions: function() {
+							$(this.mediaGallery).find('.media-menu-item').show();
+						},
+
+						setupGallery: function() {
+							var that = this;
+
+							this.setInsertButtonLabel(this.getTriggerLabel());
+							this.hideMediaOptions();
+							
+							window.send_to_editor = function(html) {
+								that.getSelectedImage(html);
+							};				
+						},
+
+						/** 
+						 * Get the field that media is being selected for
+						 * Also replace send_to_editor with getSelectedImage to handle the image when it is selected
+						 */
+						getmediaField: function(element) {
+							var name = element.attr('class').match(/<?php echo $this->button_class_name; ?>-([\d\w_-]*)/i),
+							index;
+
+							name = (name && name[1]) ? name[1] : '';
+							index = element.index('.postbox .<?= $this->button_class_name; ?>-' + name);
+
+							this.mediaField = $('.postbox .<?= $this->field_class_name; ?>-' + name).eq(index);
+							this.setupGallery();
 						}
-
-						function getInsertButtonLabel()
-						{
-							return $('#TB_iframeContent').contents().find('.media-item .savesend input[type=submit], #insertonlybutton').val();
-						}
-
-						function setInsertButtonLabel(label)
-						{
-							$('#TB_iframeContent').contents().find('.media-item .savesend input[type=submit], #insertonlybutton').val(label);
-						}
-
-						$('[class*=<?php echo $this->button_class_name; ?>]').live('click', function()
-						{
-							var name = $(this).attr('class').match(/<?php echo $this->button_class_name; ?>-([a-zA-Z0-9_-]*)/i);
-							name = (name && name[1]) ? name[1] : '' ;
-
-							var data = $(this).attr('class').match(/({.*})/i);
-							data = (data && data[1]) ? data[1] : '' ;
-							data = eval("(" + (data.indexOf('{') < 0 ? '{' + data + '}' : data) + ")");
-
-							wpalchemy_mediafield = $('.<?php echo $this->field_class_name; ?>-' + name, $(this).closest('.postbox'));
-
-							function iframeSetup()
-							{
-								if ($('#TB_iframeContent').contents().find('.media-item .savesend input[type=submit], #insertonlybutton').length)
-								{
-									// run once
-									if ( ! wpalchemy_insert_button_label.length)
-									{
-										wpalchemy_insert_button_label = getInsertButtonLabel();
-									}
-
-									setInsertButtonLabel((data && data.label)?data.label:'Insert');
-
-									// tab "type" needs a timer in order to properly change the button label
-
-									//clearInterval(interval);
-
-									// setup iframe.load as soon as it becomes available
-									// prevent multiple binds
-									//$('#TB_iframeContent').unbind('load', iframeSetup).bind('load', iframeSetup);
-								}
-							}
-
-							clearInterval(interval);
-
-							interval = setInterval(iframeSetup, 500);
-						});
 					}
+					Wpalchemy.init();		
 				});
-
 			/* ]]> */
 			</script><?php
 		}
