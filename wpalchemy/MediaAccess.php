@@ -311,7 +311,7 @@ class WPAlchemy_MediaAccess {
 			?><script type="text/javascript">
 			/* <![CDATA[ */
 				jQuery(function($) {
-					WpalchemyMedia.MediaAccess = {
+					Wpalchemy.MediaAccess = {
 						sendToEditorDefault: window.send_to_editor,
 						mediaField: null,
 						mediaGallery: '#__wp-uploader-id-2',
@@ -407,7 +407,7 @@ class WPAlchemy_MediaAccess {
 							this.setupGallery();
 						}
 					}
-					WpalchemyMedia.MediaAccess.init();		
+					Wpalchemy.MediaAccess.init();		
 				});
 			/* ]]> */
 			</script><?php
