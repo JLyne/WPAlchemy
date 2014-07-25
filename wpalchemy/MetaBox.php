@@ -1499,11 +1499,13 @@ class WPAlchemy_MetaBox {
 					elem.data('index', replace);
 				},
 
-				initTinyMCE: function() {
+								initTinyMCE: function() {
 					//-metaboxes that were not in a loop were being ignored 
 		            $('.wpa_group:not(.tocopy) textarea.wp-editor-area, .single-metabox textarea.wp-editor-area').each(function(e) {
 		            	if($(this).data('uninitialised')){
 							console.log('initialising tinyMCE on ' + $(this).attr('id'));
+							tinyMCEPreInit.mceInit.content.entities = '160,nbsp,38,amp,60,lt,62,gt';
+							tinyMCEPreInit.mceInit.content.wpautop = false;
 							tinyMCE.settings = tinyMCEPreInit.mceInit.content;
 							tinyMCE.execCommand('mceFocus', false, $(this).attr('id'));
 							tinyMCE.execCommand('mceRemoveEditor', false, $(this).attr('id'));
@@ -1528,7 +1530,7 @@ class WPAlchemy_MetaBox {
 					} else {
 						$wrap.addClass('html-active');
 						$wrap.removeClass('tmce-active');
-						var cleanContent = switchEditors._wp_Autop(tinyMCE.get($editor.attr('id')).getContent());
+						var cleanContent = tinyMCE.get($editor.attr('id')).getContent();
 						console.log(cleanContent);
 						tinyMCE.execCommand('mceRemoveEditor', false, $editor.attr('id'));
 						$editor.val(cleanContent);
