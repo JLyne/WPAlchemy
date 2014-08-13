@@ -1530,21 +1530,24 @@ class WPAlchemy_MetaBox {
 				},
 
 				initEditor: function($elem) {
+					//Readd quicktags
+					$elem.siblings('.mce-panel').remove();
+
+					new QTags({ id : $elem.attr('id'), buttons: 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'});
+					QTags._buttonsInit();
+
+					switchEditors.go($elem.attr('id'), 'html');
+
 					//Reinit tinyMCE
+					//tinyMCEPreInit.mceInit.content.wpautop = false;
 					tinyMCEPreInit.mceInit.content.entities = '160,nbsp,38,amp,60,lt,62,gt';
-					tinyMCEPreInit.mceInit.content.wpautop = false;
 					tinyMCE.settings = tinyMCEPreInit.mceInit.content;
 					
 					tinyMCE.execCommand('mceAddEditor', false, $elem.attr('id'));
 					tinyMCE.triggerSave();
 
-					//Readd quicktags
-					new QTags({ id : $elem.attr('id'), buttons: 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'});
-					QTags._buttonsInit();
-
-					//Toggle the editors twice to fix weird shit
-					switchEditors.go($elem.attr('id'), 'toggle');
-					switchEditors.go($elem.attr('id'), 'toggle');
+					switchEditors.go($elem.attr('id'), 'html');
+					switchEditors.go($elem.attr('id'), 'tinymce');
 				},
 
 				removeEditor: function($elem) {
@@ -1554,6 +1557,7 @@ class WPAlchemy_MetaBox {
 
 					//Remove quicktags
 					$elem.siblings('.quicktags-toolbar').remove();
+					$elem.siblings('.mce-panel').remove();
 				}
 			};
 
