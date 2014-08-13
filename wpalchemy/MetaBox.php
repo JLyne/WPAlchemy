@@ -45,6 +45,10 @@ define('WPALCHEMY_VIEW_START_CLOSED', 'closed');
 
 define('WPALCHEMY_VIEW_ALWAYS_OPENED', 'always_opened');
 
+if(!defined('DEBUG_BACKTRACE_IGNORE_ARGS')) {
+	define('DEBUG_BACKTRACE_IGNORE_ARGS', 0);
+}
+
 class WPAlchemy_MetaBox {
 	/**
 	 * User defined identifier for the meta box, prefix with an underscore to
@@ -558,7 +562,7 @@ class WPAlchemy_MetaBox {
 
 		if ($this->can_output()) {
 			foreach ($this->types as $type) {
-				add_meta_box($this->id . '_metabox', $this->title, array($this, '_setup'), $type, $this->context, $this->priority);
+				add_meta_box($this->id . '-metabox', $this->title, array($this, '_setup'), $type, $this->context, $this->priority);
 			}
 
 			add_action('save_post', array($this,'_save'));
@@ -617,7 +621,18 @@ class WPAlchemy_MetaBox {
 
 		?>
 		<style type="text/css">
-			<?php if ($this->hide_editor) { ?> #wp-content-editor-container, #post-status-info, <?php if ($this->use_media_buttons) { ?> #content-html, #content-tmce<?php } else { ?> #wp-content-wrap<?php } ?> { display:none; } <?php } ?>
+			<?php if($this->hide_editor) : ?> 
+			#wp-content-editor-container, 
+			#post-status-info, 
+			<?php if($this->use_media_buttons) : ?>
+			#content-html, #content-tmce
+			<?php else : ?> 
+			#wp-content-wrap
+			<?php endif; ?>
+			{ 
+				display:none; 
+			} 
+			<?php endif; ?>
 		</style>
 		<?php
 
@@ -665,17 +680,17 @@ class WPAlchemy_MetaBox {
 			(function($){ /* not using jQuery ondomready, code runs right away in footer */
 
 				var mb_id = '<?php echo $this->id; ?>';
-				var mb = $('#' + mb_id + '_metabox');
+				var mb = $('#' + mb_id + '-metabox');
 
 				<?php if (WPALCHEMY_LOCK_TOP == $this->lock): ?>
 				<?php if ('side' == $this->context): ?>
-				var id = 'wpalchemy-side-top';
+				var id = 'wpa-side-top';
 				if ( ! $('#'+id).length)
 				{
 					$('<div></div>').attr('id',id).prependTo('#side-info-column');
 				}
 				<?php else: ?>
-				var id = 'wpalchemy-content-top';
+				var id = 'wpa-content-top';
 				if ( ! $('#'+id).length)
 				{
 					$('<div></div>').attr('id',id).insertAfter('#postdiv, #postdivrich');
@@ -684,7 +699,7 @@ class WPAlchemy_MetaBox {
 				$('#'+id).append(mb);
 				<?php elseif (WPALCHEMY_LOCK_BOTTOM == $this->lock): ?>
 				<?php if ('side' == $this->context): ?>
-				var id = 'wpalchemy-side-bottom';
+				var id = 'wpa-side-bottom';
 				if ( ! $('#'+id).length)
 				{
 					$('<div></div>').attr('id',id).appendTo('#side-info-column');
@@ -695,7 +710,7 @@ class WPAlchemy_MetaBox {
 					$('#advanced-sortables').css('display','none');
 				}
 
-				var id = 'wpalchemy-content-bottom';
+				var id = 'wpa-content-bottom';
 				if ( ! $('#'+id).length)
 				{
 					$('<div></div>').attr('id',id).insertAfter('#advanced-sortables');
@@ -704,7 +719,7 @@ class WPAlchemy_MetaBox {
 				$('#'+id).append(mb);
 				<?php elseif (WPALCHEMY_LOCK_BEFORE_POST_TITLE == $this->lock): ?>
 				<?php if ('side' != $this->context): ?>
-				var id = 'wpalchemy-content-bpt';
+				var id = 'wpa-content-bpt';
 				if ( ! $('#'+id).length)
 				{
 					$('<div></div>').attr('id',id).prependTo('#post-body-content');
@@ -713,7 +728,7 @@ class WPAlchemy_MetaBox {
 				<?php endif; ?>
 				<?php elseif (WPALCHEMY_LOCK_AFTER_POST_TITLE == $this->lock): ?>
 				<?php if ('side' != $this->context): ?>
-				var id = 'wpalchemy-content-apt';
+				var id = 'wpa-content-apt';
 				if ( ! $('#'+id).length)
 				{
 					$('<div></div>').attr('id',id).insertAfter('#titlediv');
@@ -834,9 +849,9 @@ class WPAlchemy_MetaBox {
 			case E_USER_WARNING :
 				$this->error('PHP Warning (E_USER_WARNING)', $errstr);
 				break;
-			//case E_WARNING :
-				//$this->error('PHP Warning (E_WARNING)', $errstr);
-				//break;
+			case E_WARNING :
+				$this->error('PHP Warning (E_WARNING)', $errstr);
+				break;
 			case E_RECOVERABLE_ERROR :
 				$this->error('PHP Catcheable Fatal Error (E_RECOVERABLE_ERROR)', $errstr);
 				break;
@@ -911,6 +926,7 @@ class WPAlchemy_MetaBox {
 		//Include the metabox template 
 		//Buffering so that if errors are encountered the metabox won't be shown
 		ob_start();
+
 		include $this->template;
 		$html = ob_get_clean();
 		$errors = $this->show_errors();
@@ -928,8 +944,6 @@ class WPAlchemy_MetaBox {
 		}
 	 
 		$this->in_template = FALSE;
-		// create a nonce for verification
-
 	}
 
 	/**
@@ -1361,10 +1375,10 @@ class WPAlchemy_MetaBox {
 		</script>
 
 		<style type="text/css"> 
-			.hide-fullscreen .mce-wp-fullscreen{
+			.hide-fullscreen .mce-wp-fullscreen {
 				display: none;
 			}
-			.wpa_group.tocopy {
+			.wpa-group-template {
 				display: none;
 			}
 		</style>
@@ -1402,25 +1416,32 @@ class WPAlchemy_MetaBox {
 				},
 
 				deleteItem: function(elem) {
-					var metabox = elem.parents('.postbox'),
-					target = elem.data('target');
+					var metabox = elem.closest('.postbox'),
+					target = elem.data('target'),
+					$loop = $('#' + target);
 
-					if (confirm('This action can not be undone, are you sure?')) {
-						if (target) {
-							metabox.find('#' + target + ' .wpa_group').not('.tocopy').remove();
+					if(confirm('This action can not be undone, are you sure?')) {
+						if(target) {
+							var groups = $loop.find('.wpa-group');
+
+							$loop.trigger('wpa:delete', {single: false, groups: groups});
+							groups.remove();
+							$loop.trigger('wpa:deleted', {single: false});
 						} else {
-							elem.closest('.wpa_group').remove();
+							var group = elem.closest('.wpa-group');
+
+							$loop.trigger('wpa:delete', {single: true, group: group});
+							elem.closest('.wpa-group').remove();
+							$loop.trigger('wpa:deleted', {single: true});
 						}
 						
 						this.checkLoopLimit(target);
-
-						//$.wpalchemy.trigger('wpa_delete');
 					}
 				},
 
 				moveItemUp: function(elem) {
-					var previous = elem.prev('.wpa_group'),
-					field = elem.closest('.wpa_loop').data('field'),
+					var previous = elem.prev('.wpa-group'),
+					field = elem.closest('.wpa-loop').data('field'),
 					previousIndex = previous.data('index'),
 					currentIndex = elem.data('index');
 
@@ -1435,8 +1456,8 @@ class WPAlchemy_MetaBox {
 				},
 
 				moveItemDown: function(elem) {
-					var next = elem.next('.wpa_group'),
-					field = elem.closest('.wpa_loop').data('field'),
+					var next = elem.next('.wpa-group'),
+					field = elem.closest('.wpa-loop').data('field'),
 					nextIndex = next.data('index'),
 					currentIndex = elem.data('index');
 
@@ -1452,129 +1473,130 @@ class WPAlchemy_MetaBox {
 
 				copyItem: function(elem) {
 					var target = $(elem).data('target'),
-					field = $('#' + target).data('field'),
-					count = $('#' + target + ' > .wpa_group').length,
-					group = $('#' + target + ' > .tocopy'),
-					clone = group.clone(false).removeClass('tocopy last');
-					console.log($(clone));
-					
-					this.updateAttributes(clone, field, count);
+					$loop = $('#' + target),
+					metabox = elem.closest('.postbox'),
+					field = $loop.data('field'),
+					count = $loop.children('.wpa-group').length + 1,
+					group = $loop.children('.wpa-group-template'),
+					$clone = group.clone(false).removeClass('wpa-group-template');
+
+					$loop.children('.wpa-group').removeClass('last');
+					$clone.addClass('wpa-group last');
+
+					this.updateAttributes($clone, field, count);
 
 					if ($(elem).hasClass('ontop')) {
-						$('#' + target + ' > .wpa_group').first().before(clone);
+						$loop.children('.wpa-group').first().before($clone);
 					} else {
-						group.before(clone);
+						group.before($clone);
 					}
 
 					this.checkLoopLimit(target);
-					this.initTinyMCE();
+					
+					$clone.find('textarea.wp-editor-area').each(function() {
+						Wpalchemy.initEditor($(this));
+					});
+
+					$loop.trigger('wpa:copy', {field: field, newGroup: $clone});
 				},
 
 				checkLoopLimit: function(name) {
 					var loop = $('#' + name);
-					return !(loop.children('.wpa_group').not('.tocopy').length >= loop.data('limit'));
+					return !(loop.children('.wpa-group').length >= loop.data('limit'));
 				},
 
-				//Updates attributes of elements inside a wpa_group
+				//Updates attributes of elements inside a wpa-group
 				//Used to change the indexes etc when copying or moving a group
-				updateAttributes: function(elem, field, replace) {
-					var properties = ['name', 'id', 'class', 'for', 'data-target', 'data-button', 'data-input', 'data-group', 'data-uninitialised'];
+				updateAttributes: function($elem, field, replace) {
+					var properties = ['name', 'id', 'class', 'for', 'data-target', 'data-button', 'data-input', 'data-group'],
+					name_replace = new RegExp('\\[' + field + ']\\[\\d+]'),
+					hyphen_replace = new RegExp('\\-' + field + '\\-\\d+\\-');
+					underscore_replace = new RegExp('\\_' + field + '\\_\\d+\\_');
 
-					elem.find('*').each(function(i, e) {
+					$elem.find('*').each(function(i, e) {
 						for (var j = 0; j < properties.length; j++) {
 							var value = $(e).attr(properties[j]);
+							
 							if (value) {
-								var name_replace = new RegExp('\\[' + field + ']\\[\\d+]'),
-								other_replace = new RegExp('\\-' + field + '\\-\\d+\\-');
-
 								value = value.replace(name_replace, '[' + field + ']['+ replace + ']');
-								value = value.replace(other_replace, '-' + field + '-' + replace + '-');
+								value = value.replace(hyphen_replace, '-' + field + '-' + replace + '-');
+								value = value.replace(underscore_replace, '_' + field + '_' + replace + '_');
 								$(e).attr(properties[j], value);
 							}
 						}
-						if($(e).hasClass('wp-editor-area')){
-							$(e).attr('id',Math.floor(Math.random() * new Date().getTime() * Math.random()));
-						}
 					});
-					elem.data('index', replace);
+
+					$elem.attr('data-index', replace);
 				},
 
-								initTinyMCE: function() {
-					//-metaboxes that were not in a loop were being ignored 
-		            $('.wpa_group:not(.tocopy) textarea.wp-editor-area, .single-metabox textarea.wp-editor-area').each(function(e) {
-		            	if($(this).data('uninitialised')){
-							console.log('initialising tinyMCE on ' + $(this).attr('id'));
-							tinyMCEPreInit.mceInit.content.entities = '160,nbsp,38,amp,60,lt,62,gt';
-							tinyMCEPreInit.mceInit.content.wpautop = false;
-							tinyMCE.settings = tinyMCEPreInit.mceInit.content;
-							tinyMCE.execCommand('mceFocus', false, $(this).attr('id'));
-							tinyMCE.execCommand('mceRemoveEditor', false, $(this).attr('id'));
-							tinyMCE.execCommand('mceAddEditor', false, $(this).attr('id'));
-							//- Declare the quicktags
-							//- Adding new quicktag toolbar
-							// QTags({ id : $(this).attr('id')});
-							tinyMCE.triggerSave();
-							$(this).data('uninitialised',false);
-						}
-	   	            });
+				initEditor: function($elem) {
+					//Reinit tinyMCE
+					tinyMCEPreInit.mceInit.content.entities = '160,nbsp,38,amp,60,lt,62,gt';
+					tinyMCEPreInit.mceInit.content.wpautop = false;
+					tinyMCE.settings = tinyMCEPreInit.mceInit.content;
+					
+					tinyMCE.execCommand('mceAddEditor', false, $elem.attr('id'));
+					tinyMCE.triggerSave();
+
+					//Readd quicktags
+					new QTags({ id : $elem.attr('id'), buttons: 'strong,em,link,block,del,ins,img,ul,ol,li,code,more,close'});
+					QTags._buttonsInit();
+
+					//Toggle the editors twice to fix weird shit
+					switchEditors.go($elem.attr('id'), 'toggle');
+					switchEditors.go($elem.attr('id'), 'toggle');
 				},
 
-				switchto:function(elem){
-					var $editor = jQuery(elem).parent().parent().parent().find(".wp-editor-area");
-					console.log($editor.attr('id'));
-					var $wrap = $(elem).parent().parent().parent();
-					if($wrap.hasClass('html-active')){
-						tinyMCE.execCommand('mceAddEditor', false, $editor.attr('id'));
-						$wrap.removeClass('html-active');
-						$wrap.addClass('tmce-active');
-					} else {
-						$wrap.addClass('html-active');
-						$wrap.removeClass('tmce-active');
-						var cleanContent = tinyMCE.get($editor.attr('id')).getContent();
-						console.log(cleanContent);
-						tinyMCE.execCommand('mceRemoveEditor', false, $editor.attr('id'));
-						$editor.val(cleanContent);
+				removeEditor: function($elem) {
+					//Remove tinyMCE
+					tinyMCE.triggerSave();
+					tinyMCE.execCommand('mceRemoveEditor', false, $elem.attr('id'));
 
-					}
+					//Remove quicktags
+					$elem.siblings('.quicktags-toolbar').remove();
 				}
-
 			};
 
 			Wpalchemy.<?=$this->id?> = {
+				$metabox: $('#<?=$this->id?>-metabox'),
+
 				init: function() {
-					Wpalchemy.initTinyMCE();
-					$('#<?=$this->id?>_metabox').on('click', '.docopy', function(e) {
+					this.$metabox.on('click', '.wpa-copy', function(e) {
 						e.preventDefault();
 						Wpalchemy.copyItem($(this));
 						return false;
 					});
 
-					$('#<?=$this->id?>_metabox').on('click', '.dodelete', function(e) {
+					this.$metabox.on('click', '.wpa-delete', function(e) {
 						e.preventDefault();
 						Wpalchemy.deleteItem($(this));
 						return false;
 					});
 
-					$('#<?=$this->id?>_metabox').on('click', '.domoveup', function(e) {
+					this.$metabox.on('click', '.wpa-move-up', function(e) {
 						e.preventDefault();
-						Wpalchemy.moveItemUp($(this).closest('.wpa_group'));
+						Wpalchemy.moveItemUp($(this).closest('.wpa-group'));
 						return false;
 					});
 
-					$('#<?=$this->id?>_metabox').on('click', '.domovedown', function(e) {
+					this.$metabox.on('click', '.wpa-move-down', function(e) {
 						e.preventDefault();
-						Wpalchemy.moveItemDown($(this).closest('.wpa_group'));
+						Wpalchemy.moveItemDown($(this).closest('.wpa-group'));
 						return false;
 					});
 
 					/* do an initial limit check, show or hide buttons */
-					$('#<?=$this->id?>_metabox .docopy').each(function() {
+					this.$metabox.find('.wpa-copy').each(function() {
 						if(Wpalchemy.checkLoopLimit($(this).data('target'))) {
 							$(this).show();
 						} else {
 							$(this).hide();
 						}
 					});
+
+					this.$metabox.find('.wpa-group-template textarea.wp-editor-area').each(function(e) {
+		            	Wpalchemy.removeEditor($(this));
+	   	            });
 				}
 			};
 			Wpalchemy.<?=$this->id?>.init();
@@ -1833,6 +1855,14 @@ class WPAlchemy_MetaBox {
 	}
 
 	/**
+	 * @since	3.0
+	 * @access	public
+	 */
+	public function is_template() {
+		return $this->loops && end($this->loops)->current == end($this->loops)->length;
+	}
+
+	/**
 	 * Used to check if a value is a match
 	 *
 	 * @since	1.1
@@ -1989,9 +2019,9 @@ class WPAlchemy_MetaBox {
 	 */
 	public function get_the_copy_button($name = '', $label = 'Add new row', $attributes = array()) {
 		if(!empty($attributes['class'])) {
-			$attributes['class'] .= ' docopy';
+			$attributes['class'] .= ' wpa-copy';
 		} else {
-			$attributes['class'] = 'docopy';
+			$attributes['class'] = 'wpa-copy';
 		}
 
 		return $this->get_the_button($name, $label, $attributes);
@@ -2018,9 +2048,9 @@ class WPAlchemy_MetaBox {
 	 */
 	public function get_the_delete_button($name = '', $label = 'Delete row', $attributes = array()) {
 		if(!empty($attributes['class'])) {
-			$attributes['class'] .= ' dodelete';
+			$attributes['class'] .= ' wpa-delete';
 		} else {
-			$attributes['class'] = 'dodelete';
+			$attributes['class'] = 'wpa-delete';
 		}
 
 		return $this->get_the_button($name, $label, $attributes);
@@ -2045,9 +2075,9 @@ class WPAlchemy_MetaBox {
 	 */
 	public function get_the_move_up_button($label = 'Move up', $attributes = array()) {
 		if(!empty($attributes['class'])) {
-			$attributes['class'] .= ' domoveup';
+			$attributes['class'] .= ' wpa-move-up';
 		} else {
-			$attributes['class'] = 'domoveup';
+			$attributes['class'] = 'wpa-move-up';
 		}
 
 		return $this->get_the_button('', $label, $attributes);
@@ -2072,9 +2102,9 @@ class WPAlchemy_MetaBox {
 	 */
 	public function get_the_move_down_button($label = 'Move down', $attributes = array()) {
 		if(!empty($attributes['class'])) {
-			$attributes['class'] .= ' domovedown';
+			$attributes['class'] .= ' wpa-move-down';
 		} else {
-			$attributes['class'] = 'domovedown';
+			$attributes['class'] = 'wpa-move-down';
 		}
 
 		return $this->get_the_button('', $label, $attributes);
@@ -2100,44 +2130,18 @@ class WPAlchemy_MetaBox {
 		return $html;
 	}
 
-	public function the_wp_editor() {
-
+	public function the_wp_editor($content = '', $name) {
+		echo $this->get_the_wp_editor($content, $name);
 	}
+
 	//- For single wp-editors add an extra boolean of true - Need write to check to see if we are in a loop
-	public function get_the_wp_editor($content = '', $name, $is_single = false, $height = 300) {
+	public function get_the_wp_editor($content = '', $name = null) {
 		$content = html_entity_decode($content);
-		$id = md5(uniqid(rand()));
-			// $clean_name = str_replace('-', '_', $name);
-			// $clean_name = str_replace('[', '', $clean_name);
-			// $clean_name = str_replace(']', '', $clean_name);
+		$id = str_replace('-', '_', $this->get_the_group_id($name));
 
-			//- Buttons
-			$clean_name = $id;
-			$buttons = '<a id="' . $clean_name . '-html" class="wp-switch-editor switch-html" onclick="Wpalchemy.switchto(this);">Text</a>';
-			$buttons .= '<a id="' . $clean_name . '-tmce" class="wp-switch-editor switch-tmce" onclick="Wpalchemy.switchto(this);">Visual</a>';
-
-			ob_start(); 
-			?>
-				<?= ($is_single) ? '<div class="single-metabox">' : '' ; ?>
-				<div id="wp-<?=$clean_name;?>-wrap" class="wp-core-ui  wp-editor-wrap tmce-active hide-fullscreen">
-
-					<div id="wp-<?=$clean_name;?>-editor-tools" class="wp-editor-tools hide-if-no-js">
-						<div id="wp-<?= $clean_name;?>-media-buttons" class="wp-media-buttons">
-							<? do_action('media_buttons', $clean_name); ?>
-						</div>
-						<div class="wp-editor-tabs"><?= $buttons; ?></div>
-					</div>
-
-					<div id="wp-<?=$clean_name;?>-editor-container" class="wp-editor-container">					
-						<textarea class="wp-editor-area" name="<?= $name; ?>" id="<?= $clean_name; ?>" data-uninitialised="true"><?= $content ?></textarea>
-					</div>
-				</div>
-				<?= ($is_single) ? '</div>' : '' ; ?>
-			<?
-			$r_val = ob_get_contents();
-			ob_end_clean();
-			return $r_val;
-		
+		wp_editor($content, $id, array(
+			'textarea_name' => $this->get_the_name()
+		));
 	}
 
 	/**
@@ -2203,8 +2207,8 @@ class WPAlchemy_MetaBox {
 		$loop = $this->loops[$loop_name];
 		$html = '';
 
-		$loop_classes = array('wpa_loop', 'wpa_loop-' . $loop->name);
-		$group_classes = array('wpa_group', 'wpa_loop-' . $loop->name);
+		$loop_classes = array('wpa-loop', 'wpa-loop-' . $loop->name);
+		$group_classes = array('wpa-group', 'wpa-loop-' . $loop->name);
 
 		if ($this->is_first()) {
 			array_push($group_classes, 'first');
@@ -2220,10 +2224,10 @@ class WPAlchemy_MetaBox {
 
 		if ($this->is_last()) {
 			array_push($group_classes, 'last');
+		}
 
-			if ($loop->type == 'multi') {
-				array_push($group_classes, 'tocopy');
-			}
+		if ($this->is_template() && $loop->type == 'multi') {
+			$group_classes[0] = 'wpa-group-template';
 		}
 
 		return $html . '<' . $t . ' class="'. implode(' ', $group_classes) . '" data-index="' . $this->get_the_index() . '">';
@@ -2242,17 +2246,22 @@ class WPAlchemy_MetaBox {
 	 * @access	public
 	 */
 	public function get_the_group_close() {
+
 		if(!count($this->loops)) {
 			return $this->error('', 'No loops to close');
 		}
 
+		$loop_name = end($this->loops)->name;
+		$loop = $this->loops[$loop_name];
+
 		$html = '';
 		
-		if ($this->is_last()) {
+		if ($loop->type == 'normal' && $this->is_last()
+			|| $loop->type == 'multi' && $this->is_template()) {
 			$html = '</div>';
 		}
 		
-		return '</' . end($this->loops)->group_tag . '>' . $html;
+		return '</' . $loop->group_tag . '>' . $html;
 	}
 
 	/**
@@ -2269,7 +2278,6 @@ class WPAlchemy_MetaBox {
 			$this->error('Duplicate nested loop name', 'Loop "' . $n . '" on line ' . $line . ' has the same name as its ancestor on line ' . $this->loops[$n]->line);
 			return false;
 		} 
-
 
 		//If the loop doesn't exist create it
 		if(!count($this->loops) || end($this->loops)->name !== $n) {
@@ -2298,8 +2306,8 @@ class WPAlchemy_MetaBox {
 		$cnt = count((!empty($cnt)) ? $cnt : 0);
 		$length = (is_null($length) || $cnt > $length) ? $cnt : $length;
 
-		//Add 1 to length for extra tocopy group
-		$this->loops[$n]->length = ++$length;
+		//Add 1 to length for extra template group
+		$this->loops[$n]->length = $length;
 
 		return $this->loop($n);
 	}
@@ -2310,6 +2318,7 @@ class WPAlchemy_MetaBox {
 	 */
 	public function have_fields($n, $length = NULL) {
 		//Get calling line number for duplicate nested field detection
+
 		$backtrace = debug_backtrace(DEBUG_BACKTRACE_IGNORE_ARGS);
 		$line = $backtrace[0]['line'];
 
@@ -2343,9 +2352,9 @@ class WPAlchemy_MetaBox {
 		$this->name = NULL;
 		$this->fieldtype = NULL;
 
-		if ($this->loops[$n]->current < $this->loops[$n]->length) {
+		if ($this->loops[$n]->current <= $this->loops[$n]->length) {
 			return TRUE;
-		} else if ($this->loops[$n]->current == $this->loops[$n]->length) {
+		} else if ($this->loops[$n]->current > $this->loops[$n]->length) {
 			array_pop($this->loops);
 		}
 
