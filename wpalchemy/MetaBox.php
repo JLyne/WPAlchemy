@@ -1390,11 +1390,19 @@ class WPAlchemy_MetaBox {
 						if(target) {
 							var $groups = $loop.find('.wpa-group');
 
+							$groups.find('textarea.wp-editor-area').each(function() {
+								Wpalchemy.removeEditor($(this));
+							});
+
 							$loop.trigger('wpa:delete', {single: false, groups: $groups});
 							$groups.remove();
 							$loop.trigger('wpa:deleted', {single: false});
 						} else {
 							var $group = $elem.closest('.wpa-group');
+
+							$group.find('textarea.wp-editor-area').each(function() {
+								Wpalchemy.removeEditor($(this));
+							});
 
 							$loop.trigger('wpa:delete', {single: true, group: $group});
 							$elem.closest('.wpa-group').remove();
