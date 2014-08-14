@@ -1366,13 +1366,8 @@ class WPAlchemy_MetaBox {
 		// todo: you're assuming people will want to use this exact functionality
 		// consider giving a developer access to change this via hooks/callbacks
 
- 		// wp_enqueue_script( 'domJS', get_template_directory_uri() . '/wpalchemy/htmlDOM.js', array(''), null,false); 
 		// include javascript for special functionality
 		?>
-
-		<script type="text/javascript">
-			(function(){function l(e){var t={},n=e.split(",");for(var r=0;r<n.length;r++)t[n[r]]=true;return t}var e=/^<([-A-Za-z0-9_]+)((?:\s+\w+(?:\s*=\s*(?:(?:"[^"]*")|(?:'[^']*')|[^>\s]+))?)*)\s*(\/?)>/,t=/^<\/([-A-Za-z0-9_]+)[^>]*>/,n=/([-A-Za-z0-9_]+)(?:\s*=\s*(?:(?:"((?:\\.|[^"])*)")|(?:'((?:\\.|[^'])*)')|([^>\s]+)))?/g;var r=l("area,base,basefont,br,col,frame,hr,img,input,isindex,link,meta,param,embed");var i=l("address,applet,blockquote,button,center,dd,del,dir,div,dl,dt,fieldset,form,frameset,hr,iframe,ins,isindex,li,map,menu,noframes,noscript,object,ol,p,pre,script,table,tbody,td,tfoot,th,thead,tr,ul");var s=l("a,abbr,acronym,applet,b,basefont,bdo,big,br,button,cite,code,del,dfn,em,font,i,iframe,img,input,ins,kbd,label,map,object,q,s,samp,script,select,small,span,strike,strong,sub,sup,textarea,tt,u,var");var o=l("colgroup,dd,dt,li,options,p,td,tfoot,th,thead,tr");var u=l("checked,compact,declare,defer,disabled,ismap,multiple,nohref,noresize,noshade,nowrap,readonly,selected");var a=l("script,style");var f=this.HTMLParser=function(f,l){function g(e,t,a,f){t=t.toLowerCase();if(i[t]){while(d.last()&&s[d.last()]){y("",d.last())}}if(o[t]&&d.last()==t){y("",t)}f=r[t]||!!f;if(!f)d.push(t);if(l.start){var c=[];a.replace(n,function(e,t){var n=arguments[2]?arguments[2]:arguments[3]?arguments[3]:arguments[4]?arguments[4]:u[t]?t:"";c.push({name:t,value:n,escaped:n.replace(/(^|[^\\])"/g,'$1\\"')})});if(l.start)l.start(t,c,f)}}function y(e,t){if(!t)var n=0;else for(var n=d.length-1;n>=0;n--)if(d[n]==t)break;if(n>=0){for(var r=d.length-1;r>=n;r--)if(l.end)l.end(d[r]);d.length=n}}var c,h,p,d=[],v=f;d.last=function(){return this[this.length-1]};while(f){h=true;if(!d.last()||!a[d.last()]){if(f.indexOf("<!--")==0){c=f.indexOf("-->");if(c>=0){if(l.comment)l.comment(f.substring(4,c));f=f.substring(c+3);h=false}}else if(f.indexOf("</")==0){p=f.match(t);if(p){f=f.substring(p[0].length);p[0].replace(t,y);h=false}}else if(f.indexOf("<")==0){p=f.match(e);if(p){f=f.substring(p[0].length);p[0].replace(e,g);h=false}}if(h){c=f.indexOf("<");var m=c<0?f:f.substring(0,c);f=c<0?"":f.substring(c);if(l.chars)l.chars(m)}}else{f=f.replace(new RegExp("(.*)</"+d.last()+"[^>]*>"),function(e,t){t=t.replace(/<!--(.*?)-->/g,"$1").replace(/<!\[CDATA\[(.*?)]]>/g,"$1");if(l.chars)l.chars(t);return""});y("",d.last())}if(f==v)throw"Parse Error: "+f;v=f}y()};this.HTMLtoXML=function(e){var t="";f(e,{start:function(e,n,r){t+="<"+e;for(var i=0;i<n.length;i++)t+=" "+n[i].name+'="'+n[i].escaped+'"';t+=(r?"/":"")+">"},end:function(e){t+="</"+e+">"},chars:function(e){t+=e},comment:function(e){t+="<!--"+e+"-->"}});return t};this.HTMLtoDOM=function(e,t){var n=l("html,head,body,title");var r={link:"head",base:"head"};if(!t){if(typeof DOMDocument!="undefined")t=new DOMDocument;else if(typeof document!="undefined"&&document.implementation&&document.implementation.createDocument)t=document.implementation.createDocument("","",null);else if(typeof ActiveX!="undefined")t=new ActiveXObject("Msxml.DOMDocument")}else t=t.ownerDocument||t.getOwnerDocument&&t.getOwnerDocument()||t;var i=[],s=t.documentElement||t.getDocumentElement&&t.getDocumentElement();if(!s&&t.createElement)(function(){var e=t.createElement("html");var n=t.createElement("head");n.appendChild(t.createElement("title"));e.appendChild(n);e.appendChild(t.createElement("body"));t.appendChild(e)})();if(t.getElementsByTagName)for(var o in n)n[o]=t.getElementsByTagName(o)[0];var u=n.body;f(e,{start:function(e,s,o){if(n[e]){u=n[e];if(!o){i.push(u)}return}var a=t.createElement(e);for(var f in s)a.setAttribute(s[f].name,s[f].value);if(r[e]&&typeof n[r[e]]!="boolean")n[r[e]].appendChild(a);else if(u&&u.appendChild)u.appendChild(a);if(!o){i.push(a);u=a}},end:function(e){i.length-=1;u=i[i.length-1]},chars:function(e){u.appendChild(t.createTextNode(e))},comment:function(e){}});return t}})()
-		</script>
 
 		<style type="text/css"> 
 			.hide-fullscreen .mce-wp-fullscreen {
@@ -1382,56 +1377,27 @@ class WPAlchemy_MetaBox {
 				display: none;
 			}
 		</style>
+
 		<script type="text/javascript">
 		/* <![CDATA[ */
 		jQuery(function($) {
 			Wpalchemy = window.Wpalchemy || {
-
-				cleanMarkup:function(input){
-					var results = "";
-					HTMLParser(input, {
-						start: function( tag, attrs, unary ) {
-							results += "<" + tag;
-
-							for ( var i = 0; i < attrs.length; i++ )
-								results += " " + attrs[i].name + '="' + attrs[i].escaped + '"';
-
-							results += (unary ? "/" : "") + ">";
-						},
-
-						end: function( tag ) {
-							results += "</" + tag + ">";
-						},
-
-						chars: function( text ) {
-							results += text;
-						},
-
-						comment: function( text ) {
-							results += "<!--" + text + "-->";
-						}
-					});
-
-					return results;
-				},
-
-				deleteItem: function(elem) {
-					var metabox = elem.closest('.postbox'),
-					target = elem.data('target'),
-					$loop = $('#' + target);
+				deleteItem: function($elem) {
+					var target = $elem.data('target'),
+					$loop = (target) ? $('#' + target) : $elem.closest('.wpa-loop');
 
 					if(confirm('This action can not be undone, are you sure?')) {
 						if(target) {
-							var groups = $loop.find('.wpa-group');
+							var $groups = $loop.find('.wpa-group');
 
-							$loop.trigger('wpa:delete', {single: false, groups: groups});
-							groups.remove();
+							$loop.trigger('wpa:delete', {single: false, groups: $groups});
+							$groups.remove();
 							$loop.trigger('wpa:deleted', {single: false});
 						} else {
-							var group = elem.closest('.wpa-group');
+							var $group = $elem.closest('.wpa-group');
 
-							$loop.trigger('wpa:delete', {single: true, group: group});
-							elem.closest('.wpa-group').remove();
+							$loop.trigger('wpa:delete', {single: true, group: $group});
+							$elem.closest('.wpa-group').remove();
 							$loop.trigger('wpa:deleted', {single: true});
 						}
 						
@@ -1439,57 +1405,52 @@ class WPAlchemy_MetaBox {
 					}
 				},
 
-				moveItemUp: function(elem) {
-					var previous = elem.prev('.wpa-group'),
-					field = elem.closest('.wpa-loop').data('field'),
-					previousIndex = previous.data('index'),
-					currentIndex = elem.data('index');
+				moveItemUp: function($elem) {
+					var $previous = $elem.prev('.wpa-group'),
+					field = $elem.closest('.wpa-loop').data('field'),
+					previousIndex = $previous.data('index'),
+					currentIndex = $elem.data('index');
 
-					if(!previous) {
+					if(!$previous) {
 						return false;
 					}
 
-					this.updateAttributes(elem, field, previousIndex);
-					this.updateAttributes(previous, field, currentIndex);
+					this.updateAttributes($elem, field, previousIndex);
+					this.updateAttributes($previous, field, currentIndex);
 
-					previous.before(elem);
+					$previous.before($elem);
 				},
 
-				moveItemDown: function(elem) {
-					var next = elem.next('.wpa-group'),
-					field = elem.closest('.wpa-loop').data('field'),
-					nextIndex = next.data('index'),
-					currentIndex = elem.data('index');
+				moveItemDown: function($elem) {
+					var $next = $elem.next('.wpa-group'),
+					field = $elem.closest('.wpa-loop').data('field'),
+					nextIndex = $next.data('index'),
+					currentIndex = $elem.data('index');
 
-					if(!next) {
+					if(!$next) {
 						return false;
 					}
 
-					this.updateAttributes(elem, field, nextIndex);
-					this.updateAttributes(next, field, currentIndex);
+					this.updateAttributes($elem, field, nextIndex);
+					this.updateAttributes($next, field, currentIndex);
 
-					next.after(elem);
+					$next.after($elem);
 				},
 
-				copyItem: function(elem) {
-					var target = $(elem).data('target'),
-					$loop = $('#' + target),
-					metabox = elem.closest('.postbox'),
+				copyItem: function($elem) {
+					var target = $elem.data('target'),
+					$loop = (target) ? $('#' + target) : $elem.closest('.wpa-loop'),
 					field = $loop.data('field'),
 					count = $loop.children('.wpa-group').length + 1,
-					group = $loop.children('.wpa-group-template'),
-					$clone = group.clone(false).removeClass('wpa-group-template');
+					$group = $loop.children('.wpa-group-template'),
+					$clone = $group.clone(false).removeClass('wpa-group-template');
 
 					$loop.children('.wpa-group').removeClass('last');
 					$clone.addClass('wpa-group last');
 
 					this.updateAttributes($clone, field, count);
 
-					if ($(elem).hasClass('ontop')) {
-						$loop.children('.wpa-group').first().before($clone);
-					} else {
-						group.before($clone);
-					}
+					$group.before($clone);
 
 					this.checkLoopLimit(target);
 					
@@ -1497,12 +1458,12 @@ class WPAlchemy_MetaBox {
 						Wpalchemy.initEditor($(this));
 					});
 
-					$loop.trigger('wpa:copy', {field: field, newGroup: $clone});
+					$loop.trigger('wpa:copy', {field: field, group: $clone});
 				},
 
 				checkLoopLimit: function(name) {
-					var loop = $('#' + name);
-					return !(loop.children('.wpa-group').length >= loop.data('limit'));
+					var $loop = $('#' + name);
+					return !($loop.children('.wpa-group').length >= $loop.data('limit'));
 				},
 
 				//Updates attributes of elements inside a wpa-group
